@@ -77,6 +77,7 @@ window.render = function(options) {
         .style('fill', 'rgba(0, 100, 200, .5)')
         .style('stroke-width', '0')
         .style('font-size', '12px')
+        .attr('pointer-events', 'none')
         .text(function(d) {
             return d.name.substring(0, 8) + '...';
         });
@@ -157,7 +158,7 @@ window.render = function(options) {
 
     // click root
     var root = document.querySelector('.hypertree-node circle');
-    $(root).click();
+    d3.select(root).on('click').apply(root, [nodes[0]]);
 };
 
 
