@@ -23,11 +23,6 @@ window.render = function(options) {
         }
     };
     parseNode(data); // note that data must starts with single root node
-    links = links.map(function(link) {
-        link.source = nodes.indexOf(link.source);
-        link.target = nodes.indexOf(link.target);
-        return link;
-    });
 
     // init target
     var $svg = d3.select(container)
@@ -40,7 +35,6 @@ window.render = function(options) {
             .charge(-1000)
             .linkDistance(50)
             .linkStrength(function(link) {
-                console.log(link.target.focused);
                 if(link.target.focused) {
                     return 0.5;
                 } else {
@@ -105,14 +99,16 @@ window.render = function(options) {
         $elem.style('fill', 'black');
     };
 
-    $nodes.on("click", function(d) {
+    $nodes.selectAll('circle').on("click", function(d) {
         nodes.forEach(function(d) {
             d.focused = false;
         });
         d.focused = true;
 
+
         unfocus($svg.selectAll('.focused'));
-        focus(d3.select(this));
+
+        focus(d3.select(this.parentElement));
         force.start(); // restart focus layout
     });
 
@@ -130,7 +126,10 @@ window.render = function(options) {
             };
             path += "Q" + control.x + ' ' + control.y + "," + d.target.x + ' ' + d.target.y; // curve
             return path;
-        });
+        })
+            .style('stroke', function(d) {
+                return d.target.focused ? '#000' : '#ccc';
+            });
         $links.attr('x1', function(d) { return d.source.x; })
             .attr('y1', function(d) { return d.source.y; })
             .attr('x2', function(d) { return d.target.x; })
@@ -140,13 +139,27 @@ window.render = function(options) {
             .attr('cx', function(d) { return d.x; })
             .attr('cy', function(d) { return d.y; })
             .style('fill', function(d) {
-
+                var shouldHighlight = d.focused;
+                links.filter(function(link) {
+                    return link.source === d;
+                }).forEach(function(link) {
+                    if(link.target.focused) {
+                        shouldHighlight = true;
+                    }
+                });
+                return shouldHighlight ? '#000' : '#ccc';
             });
 
         $nodes.select('text')
             .attr('x', function(d) { return d.x + r * 1.2; })
             .attr('y', function(d) { return d.y + r * 0.5; });
     });
+
+    // click root
+    var e = document.createEvent('UIEvent');
+    e.initUIEvent('click', true, true);
+    var root = document.querySelector('.hypertree-node circle');
+    root.dispatchEvent(e);
 };
 
 
