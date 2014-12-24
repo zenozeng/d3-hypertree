@@ -17,8 +17,3 @@ h1, h2, h3, h4, h5, h6 {
     stroke: #fff;
     stroke-width: 2px;
 }
-
-.hypertree-link {
-    stroke: #000;
-    stroke-opacity: .2;
-}

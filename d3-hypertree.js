@@ -48,7 +48,11 @@ window.render = function(options) {
     var $links = $svg.selectAll('.hypertree-link')
             .data(links)
             .enter()
-            .append('line')
+            .append('path')
+            // .style('fill', '#000')
+            .style('fill', 'none')
+            .style('stroke-width', '3')
+            .style('stroke', 'rgba(0, 0, 0, .1)')
             .attr('class', 'hypertree-link');
 
     // init nodes
@@ -98,6 +102,19 @@ window.render = function(options) {
 
     // force on tick
     force.on('tick', function() {
+        $links.attr('d', function(d) {
+            var path = "M" + d.source.x + "," + d.source.y; // move to source
+            // 控制点在垂直中线上方 5px 处
+            var dx = d.target.x - d.source.x;
+            var dy = d.target.y - d.source.y;
+            var angle = Math.atan(dx, dy);
+            var control = {
+                x: (d.source.x + d.target.x) / 2 + 10,
+                y: (d.source.y + d.target.y) / 2 + 10
+            };
+            path += "Q" + control.x + ' ' + control.y + "," + d.target.x + ' ' + d.target.y; // curve
+            return path;
+        });
         $links.attr('x1', function(d) { return d.source.x; })
             .attr('y1', function(d) { return d.source.y; })
             .attr('x2', function(d) { return d.target.x; })
