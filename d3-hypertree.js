@@ -38,7 +38,15 @@ window.render = function(options) {
     // init force
     var force = d3.layout.force()
             .charge(-1000)
-            .linkDistance(80)
+            .linkDistance(50)
+            .linkStrength(function(link) {
+                console.log(link.target.focused);
+                if(link.target.focused) {
+                    return 0.5;
+                } else {
+                    return 10;
+                }
+            })
             .size([width, height])
             .nodes(nodes)
             .links(links)
@@ -52,7 +60,7 @@ window.render = function(options) {
             // .style('fill', '#000')
             .style('fill', 'none')
             .style('stroke-width', '3')
-            .style('stroke', 'rgba(0, 0, 0, .1)')
+            .style('stroke', 'rgba(0, 0, 0, .7)')
             .attr('class', 'hypertree-link');
 
     // init nodes
@@ -76,17 +84,19 @@ window.render = function(options) {
         .style('stroke-width', '0')
         .style('font-size', '12px')
         .text(function(d) {
-            return d.name.substring(0, 4) + '...';
-        })
-        .append('title')
-        .text(function(d) {
-            return d.name;
+            return d.name.substring(0, 8) + '...';
         });
 
     var focus = function($elem) {
         $elem.classed('focused', true);
+
+        // highlight it
         $elem.select('circle').transition().attr('r', 2 * r);
         $elem.style('fill', 'red');
+
+        // move to center
+        var center = {x: width / 2, y: height / 2};
+        $elem.select('circle').attr('dx', center.x).attr('dy', center.y);
     };
 
     var unfocus = function($elem) {
@@ -96,8 +106,14 @@ window.render = function(options) {
     };
 
     $nodes.on("click", function(d) {
+        nodes.forEach(function(d) {
+            d.focused = false;
+        });
+        d.focused = true;
+
         unfocus($svg.selectAll('.focused'));
         focus(d3.select(this));
+        force.start(); // restart focus layout
     });
 
     // force on tick
@@ -122,7 +138,10 @@ window.render = function(options) {
 
         $nodes.select('circle')
             .attr('cx', function(d) { return d.x; })
-            .attr('cy', function(d) { return d.y; });
+            .attr('cy', function(d) { return d.y; })
+            .style('fill', function(d) {
+
+            });
 
         $nodes.select('text')
             .attr('x', function(d) { return d.x + r * 1.2; })
