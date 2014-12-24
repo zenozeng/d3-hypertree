@@ -30,7 +30,7 @@ window.render = function(options) {
     });
 
     // init target
-    var svg = d3.select(container)
+    var $svg = d3.select(container)
             .append('svg')
             .attr('width', width)
             .attr('height', height);
@@ -38,44 +38,78 @@ window.render = function(options) {
     // init force
     var force = d3.layout.force()
             .charge(-1000)
-            .linkDistance(100)
+            .linkDistance(80)
             .size([width, height])
             .nodes(nodes)
             .links(links)
             .start();
 
     // init links
-    var $links = svg.selectAll('.hypertree-link')
+    var $links = $svg.selectAll('.hypertree-link')
             .data(links)
             .enter()
             .append('line')
             .attr('class', 'hypertree-link');
 
     // init nodes
-    var $nodes = svg.selectAll('.hypertree-node')
+    var $nodes = $svg.selectAll('.hypertree-node')
             .data(nodes)
             .enter()
-            .append('circle')
+            .append('g')
             .attr('class', 'hypertree-node')
-            .attr('r', 10)
-            .style('fill', function(d) {
-                return 'rgba(0, 0, 0, .5)';
-            })
             .call(force.drag);
 
-    $nodes.append('text').text(function(d) {
-        return d.name;
+    var r = 10;
+
+    $nodes.append('circle')
+        .attr('r', r)
+        .style('fill', function(d) {
+            return 'rgba(0, 0, 0)';
+        });
+
+    $nodes.append('text')
+        .style('fill', 'rgba(0, 100, 200, .5)')
+        .style('stroke-width', '0')
+        .style('font-size', '12px')
+        .text(function(d) {
+            return d.name.substring(0, 4) + '...';
+        })
+        .append('title')
+        .text(function(d) {
+            return d.name;
+        });
+
+    var focus = function($elem) {
+        $elem.classed('focused', true);
+        $elem.select('circle').transition().attr('r', 2 * r);
+        $elem.style('fill', 'red');
+    };
+
+    var unfocus = function($elem) {
+        $elem.classed('focused', false);
+        $elem.select('circle').transition().attr('r', r);
+        $elem.style('fill', 'black');
+    };
+
+    $nodes.on("click", function(d) {
+        unfocus($svg.selectAll('.focused'));
+        focus(d3.select(this));
     });
 
     // force on tick
     force.on('tick', function() {
-        $links.attr("x1", function(d) { return d.source.x; })
-            .attr("y1", function(d) { return d.source.y; })
-            .attr("x2", function(d) { return d.target.x; })
-            .attr("y2", function(d) { return d.target.y; });
+        $links.attr('x1', function(d) { return d.source.x; })
+            .attr('y1', function(d) { return d.source.y; })
+            .attr('x2', function(d) { return d.target.x; })
+            .attr('y2', function(d) { return d.target.y; });
 
-        $nodes.attr("cx", function(d) { return d.x; })
-            .attr("cy", function(d) { return d.y; });
+        $nodes.select('circle')
+            .attr('cx', function(d) { return d.x; })
+            .attr('cy', function(d) { return d.y; });
+
+        $nodes.select('text')
+            .attr('x', function(d) { return d.x + r * 1.2; })
+            .attr('y', function(d) { return d.y + r * 0.5; });
     });
 };
 
