@@ -156,10 +156,8 @@ window.render = function(options) {
     });
 
     // click root
-    var e = document.createEvent('UIEvent');
-    e.initUIEvent('click', true, true);
     var root = document.querySelector('.hypertree-node circle');
-    root.dispatchEvent(e);
+    $(root).click();
 };
 
 
